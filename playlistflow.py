@@ -14,7 +14,7 @@ def authenticateuser():
 		returns a code or None if some error prevented autherntication
 	"""
 	# read application keys from text file
-	with open("keys.txt") as f:
+	with open("keys.txt", "r") as f:
 		appid, appsecret, redirecturi = f.read().splitlines()
 
 	# generate random state string for request (for security)
@@ -37,7 +37,7 @@ def authenticateuser():
 	# generate authorization request
 	r = requests.get("https://accounts.spotify.com/authorize/",
 					params=payload)
-	# print('url = \n\n {} \n\n'.format(r.url))
+	print('url = \n\n {} \n\n'.format(r.url))
 
 	# parse uri response
 	uri = input("callback uri? ")
@@ -56,16 +56,48 @@ def authenticateuser():
 		error = parseduri['error'][0]
 		return(None)
 
+def requesttokens(code):
+	""" Exchange authorization code for access and refresh tokens with a POST
+		request to /api/token endpoint
+
+		returns access token and refresh token or None,None
+	"""
+
+	with open("keys.txt", "r") as f:
+		appid, appsecret, redirecturi = f.read().splitlines()
+
+	payload = {}
+	payload["grant_type"] = "authorization_code"
+	payload["code"] = code
+	payload["redirect_uri"] = redirecturi
+	payload["client_id"] = appid
+	payload["client_secret"] = appsecret
+
+	r = requests.post("https://accounts.spotify.com/api/token", data=payload)
+
+	postresponse = r.json()
+
+	if "refresh_token" not in postresponse:
+		print('error: token request failed')
+		return(None, None)
+
+	refreshtoken = postresponse["refresh_token"]
+	accesstoken = postresponse["access_token"]
+	expiration = postresponse["expires_in"]
+	print('\ntokens:\n\n{}'.format(r.json()))
 
 
-def requesttokens():
-	pass
-
+	return(accesstoken, refreshtoken)
 
 def main():
 
+	# get code
 	code = authenticateuser()
-	requesttokens()
+
+	# use code to request access and refresh tokens
+	accesstoken, refreshtoken = requesttokens(code)
+
+	# use these codes to 
 
 if __name__ == "__main__":
 	main()

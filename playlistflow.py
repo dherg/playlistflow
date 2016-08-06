@@ -10,7 +10,8 @@ from track import Track
 
 
 def authenticateuser():
-    """ Send authorization request, get authorization code in uri, use
+    """ 
+        Send authorization request, get authorization code in uri, use
         code from uri to request access and refresh tokens.
         
         Returns a code or None if some error prevented authentication.
@@ -59,7 +60,8 @@ def authenticateuser():
         return(None)
 
 def requesttokens(code):
-    """ Exchange authorization code for access and refresh tokens with a POST
+    """ 
+        Exchange authorization code for access and refresh tokens with a POST
         request to /api/token endpoint.
 
         Returns access token and refresh token, or None,None if unable to 
@@ -92,7 +94,8 @@ def requesttokens(code):
     return(accesstoken, refreshtoken)
 
 def getuserid(accesstoken):
-    """ Get the current user's id using the /v1/me endpoint.
+    """ 
+        Get the current user's id using the /v1/me endpoint.
 
         Returns user's id as a string, or None if unable to obtain id.
     """
@@ -115,7 +118,8 @@ def getuserid(accesstoken):
     return(userid)
 
 def getplaylists(accesstoken, userid):
-    """ Build a dict containing the names, thumbnail URLs, and playlist IDs of
+    """ 
+        Build a dict containing the names, thumbnail URLs, and playlist IDs of
         the current user's playlists using the /v1/me/playlists endpoint.
 
         API returns a maximum of 50 playlists at a time, so while 50 are
@@ -185,10 +189,24 @@ def getplaylists(accesstoken, userid):
 
 def getplaylistchoice(playlists):
     """
+        Present user with list of their playlists, and get their choice for
+        which playlist they want to be "flowed"
+
         Returns a single Playlist object representing the chosen playlist, or
         None if there is an error.
+
     """
-    pass
+
+    for i, name in enumerate(playlists):
+        print("[{}] {}".format(i, name))
+
+    # assuming input is a playlist, TODO will be a multiple choice
+    # checkboxes?
+    chosenplaylistname = input("Type the name of the playlist you want to be flowed")
+
+    return(playlists[chosenplaylistname])
+
+
 
 def main():
 
@@ -208,6 +226,7 @@ def main():
     chosenplaylist = getplaylistchoice(playlists)
 
     # get list of that playlist's tracks
+    
 
     # get info for each of that playlist's tracks
 

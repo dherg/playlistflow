@@ -7,6 +7,9 @@ class Track():
     def __init__(self):
 
         self.trackid = None
+        self.trackname = None
+        self.artistname = None
+        self.albumname = None
         self.danceability = None
         self.energy = None
         self.key = None

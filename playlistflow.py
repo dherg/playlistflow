@@ -194,7 +194,6 @@ def getplaylistchoice(playlists):
 
         Returns a single Playlist object representing the chosen playlist, or
         None if there is an error.
-
     """
 
     for i, name in enumerate(playlists):
@@ -202,9 +201,95 @@ def getplaylistchoice(playlists):
 
     # assuming input is a playlist, TODO will be a multiple choice
     # checkboxes?
-    chosenplaylistname = input("Type the name of the playlist you want to be flowed")
+    chosenplaylistname = input("Type the name of the playlist you want to be flowed: ")
 
     return(playlists[chosenplaylistname])
+
+def getplaylisttracks(accesstoken, chosenplaylist, userid):
+    """
+        Take a playlist object and fill out its 'tracks' attribute with a list
+        of track objects
+
+        Returns a Playlist object with the tracks attribute complete, or None
+        if there is an error.
+    """
+
+    headers = {}
+    headers["Authorization"] = "Bearer {}".format(accesstoken)
+
+    limit = 100
+
+    payload = {}
+    payload["limit"] = limit
+    payload["offset"] = 0
+
+    playlistid = chosenplaylist.playlistid    
+
+    r = requests.get(
+        "https://api.spotify.com/v1/users/{}/playlists/{}/tracks".format(userid, playlistid),
+        headers=headers,
+        params=payload)
+
+    response = r.json()
+
+    if "items" not in response:
+        print('error: getplaylists request failed')
+        return(None)
+
+    numberreceived = len(response["items"])
+    totalavailable = response["total"]
+
+    tracks = {}
+
+    for track in response["items"]:
+        t = Track()
+        t.trackid = track["track"]["id"]
+        t.albumname = track["track"]["album"]["name"]
+        t.trackname = track["track"]["name"]
+        t.artistname = track["track"]["artists"][0]["name"]
+        # print(t.trackid, t.trackname, t.artistname, t.albumname)
+        chosenplaylist.tracks[t.trackid] = t
+
+    # if we haven't gotten all of the tracks in the playlist, request the next
+    # batch
+
+    while numberreceived < totalavailable:
+
+        payload["offset"] = payload["offset"] + limit
+        r = requests.get(
+        "https://api.spotify.com/v1/users/{}/playlists/{}/tracks".format(userid, playlistid),
+        headers=headers,
+        params=payload)
+        response = r.json()
+
+        if "items" not in response:
+            print('error: getplaylists request failed')
+            return(None)
+
+        for track in response["items"]:
+            t = Track()
+            t.trackid = track["track"]["id"]
+            t.albumname = track["track"]["album"]["name"]
+            t.trackname = track["track"]["name"]
+            t.artistname = track["track"]["artists"][0]["name"]
+            # print(t.trackid, t.trackname, t.artistname, t.albumname)
+            chosenplaylist.tracks[t.trackid] = t
+               
+        numberreceived = numberreceived + len(response["items"])
+
+    # print(chosenplaylist.tracks)
+    return(chosenplaylist)
+
+def gettrackinfo(accesstoken, playlist):
+    """
+        Given a playlist object, fills the audio features for each track
+        object in the given playlist's list of tracks.
+
+        No return value.
+    """
+    pass
+
+
 
 
 
@@ -226,9 +311,10 @@ def main():
     chosenplaylist = getplaylistchoice(playlists)
 
     # get list of that playlist's tracks
-    
+    playlist = getplaylisttracks(accesstoken, chosenplaylist, userid)
 
     # get info for each of that playlist's tracks
+    gettrackinfo(accesstoken, playlist)
 
     # run flow algorithm to determine correct order
 

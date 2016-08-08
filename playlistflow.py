@@ -114,7 +114,7 @@ def getuserid(accesstoken):
         return(None)
 
     userid = response["id"]
-    print("userid = {}".format(userid))
+    # print("userid = {}".format(userid))
     return(userid)
 
 def getplaylists(accesstoken, userid):
@@ -277,7 +277,7 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
                
         numberreceived = numberreceived + len(response["items"])
 
-    # print(chosenplaylist.tracks)
+    print(chosenplaylist.tracks)
     return(chosenplaylist)
 
 def gettrackinfo(accesstoken, playlist):
@@ -287,7 +287,39 @@ def gettrackinfo(accesstoken, playlist):
 
         No return value.
     """
-    pass
+
+    headers = {}
+    headers["Authorization"] = "Bearer {}".format(accesstoken)
+
+    for track in playlist.tracks:
+
+        r = requests.get("https://api.spotify.com/v1/audio-features/{}".format(track),
+            headers=headers)
+
+        response = r.json()
+
+        if "danceability" not in response:
+            print('error: getplaylists request failed')
+            return(None)
+
+        t = playlist.tracks[track]
+        t.danceability = response["danceability"]
+        t.energy = response["energy"]
+        t.key = response["key"]
+        t.loudness = response["loudness"]
+        t.mode = response["mode"]
+        t.speechiness = response["speechiness"]
+        t.acousticness = response["acousticness"]
+        t.instrumentalness = response["instrumentalness"]
+        t.liveness = response["liveness"]
+        t.valence = response["valence"]
+        t.tempo = response["tempo"]
+        t.duration_ms = response["duration_ms"]
+        t.time_signature = response["time_signature"]
+
+        # t.printattributes()
+
+    
 
 
 

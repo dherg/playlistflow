@@ -239,14 +239,13 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
     numberreceived = len(response["items"])
     totalavailable = response["total"]
 
-    tracks = {}
-
     for track in response["items"]:
         t = Track()
         t.trackid = track["track"]["id"]
         t.albumname = track["track"]["album"]["name"]
         t.trackname = track["track"]["name"]
         t.artistname = track["track"]["artists"][0]["name"]
+        t.popularity = track["track"]["popularity"]
         # print(t.trackid, t.trackname, t.artistname, t.albumname)
         chosenplaylist.tracks[t.trackid] = t
 
@@ -319,11 +318,29 @@ def gettrackinfo(accesstoken, playlist):
 
         # t.printattributes()
 
-    
+def sortbyflow(playlist):
+    """
+        Takes in a Playlist object with Tracks filled with attributes, applies
+        flow algorithm to group songs (For now just sorts by the valence
+        attribute, TODO: something more sophisticated.)
 
+        Returns a list of Track objects in the newly sorted order, or None if
+        there is an error.
+    """
+    try:
+        unsortedlist = [playlist.tracks[x] for x in playlist.tracks]
 
+        sortedlist = sorted(unsortedlist, key = lambda x: x.valence)
+    except:
+        print("error: sorting in sortbyflow failed")
+        return(None)
 
+    return(sortedlist)
 
+def createspotifyplaylist():
+    """
+    """
+    pass
 
 def main():
 
@@ -349,6 +366,7 @@ def main():
     gettrackinfo(accesstoken, playlist)
 
     # run flow algorithm to determine correct order
+    newtracklist = sortbyflow(playlist)
 
     # create new playlist with that track order
 

@@ -10,6 +10,7 @@ class Track():
         self.trackname = None
         self.artistname = None
         self.albumname = None
+        self.popularity = None
         self.danceability = None
         self.energy = None
         self.key = None
@@ -34,6 +35,7 @@ class Track():
             "trackname: {trackname}\n\t" 
             "artistname: {artistname}\n\t"
             "albumname: {albumname}\n\t"
+            "popularity: {popularity}\n\t"
             "danceability: {danceability}\n\t"
             "energy: {energy}\n\t"
             "key: {key}\n\t" 
@@ -51,6 +53,7 @@ class Track():
                 trackname=self.trackname,
                 artistname=self.artistname,
                 albumname=self.albumname,
+                popularity=self.popularity,
                 danceability=self.danceability,
                 energy=self.energy,
                 key=self.key,

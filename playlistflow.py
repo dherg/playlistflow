@@ -84,6 +84,7 @@ def requesttokens(code):
 
     if "refresh_token" not in response:
         print('error: token request failed')
+        print(response["error"])
         return(None, None)
 
     refreshtoken = response["refresh_token"]
@@ -111,6 +112,7 @@ def getuserid(accesstoken):
     response = r.json()
     if "id" not in response:
         print('error: getuserid request failed')
+        print(response["error"])
         return(None)
 
     userid = response["id"]
@@ -132,7 +134,7 @@ def getplaylists(accesstoken, userid):
     headers = {}
     headers["Authorization"] = "Bearer {}".format(accesstoken)
 
-    limit = 5
+    limit = 50
 
     payload = {}
     payload["limit"] = limit
@@ -149,6 +151,7 @@ def getplaylists(accesstoken, userid):
     # add data to playlist objects
     if "items" not in response:
         print('error: getplaylists request failed')
+        print(response["error"])
         return(None)
 
     numberreceived = len(response["items"])
@@ -174,6 +177,7 @@ def getplaylists(accesstoken, userid):
 
         if "items" not in response:
             print("error: getplaylists request failed")
+            print(response["error"])
             return(None)
 
         for playlist in response["items"]:
@@ -195,6 +199,9 @@ def getplaylistchoice(playlists):
         Returns a single Playlist object representing the chosen playlist, or
         None if there is an error.
     """
+
+    # for testing
+    return(playlists["modestly built falls"])
 
     for i, name in enumerate(playlists):
         print("[{}] {}".format(i, name))
@@ -234,6 +241,7 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
 
     if "items" not in response:
         print('error: getplaylists request failed')
+        print(response["error"])
         return(None)
 
     numberreceived = len(response["items"])
@@ -263,6 +271,7 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
 
         if "items" not in response:
             print('error: getplaylists request failed')
+            print(response["error"])
             return(None)
 
         for track in response["items"]:
@@ -276,7 +285,7 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
                
         numberreceived = numberreceived + len(response["items"])
 
-    print(chosenplaylist.tracks)
+    # print(chosenplaylist.tracks)
     return(chosenplaylist)
 
 def gettrackinfo(accesstoken, playlist):
@@ -299,6 +308,7 @@ def gettrackinfo(accesstoken, playlist):
 
         if "danceability" not in response:
             print('error: getplaylists request failed')
+            print(response["error"])
             return(None)
 
         t = playlist.tracks[track]
@@ -324,23 +334,116 @@ def sortbyflow(playlist):
         flow algorithm to group songs (For now just sorts by the valence
         attribute, TODO: something more sophisticated.)
 
-        Returns a list of Track objects in the newly sorted order, or None if
+        Returns a list of track URIs in the newly sorted order, or None if
         there is an error.
     """
     try:
         unsortedlist = [playlist.tracks[x] for x in playlist.tracks]
 
         sortedlist = sorted(unsortedlist, key = lambda x: x.valence)
+        sorteduris = ["spotify:track:{}".format(track.trackid) for track in sortedlist]
     except:
         print("error: sorting in sortbyflow failed")
         return(None)
 
-    return(sortedlist)
+    return(sorteduris)
 
-def createspotifyplaylist():
+def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
     """
+        Use the given tracklist to create a new playlist on spotify with the 
+        name "{name} - flowed", or "{name} - flowed (1)" if "{name} - flowed" 
+        already exists, or "{name} - flowed ({n})" if "{name} - flowed ({n-1})"
+        exists. Takes in playlists (dict of user's playlists) to check whether
+        names are taken.
+
+        Returns True if successful, False if unsuccessful.
     """
-    pass
+
+    # find a unique name for the playlist
+    playlistname = "{} - flowed".format(name)
+    if playlistname in playlists:
+        num = 1
+        playlistname = "{} - flowed ({})".format(name, num)
+        while playlistname in playlists:
+            num = num + 1
+            playlistname = "{} - flowed ({})".format(name, num)
+
+    # create playlist
+    headers = {}
+    headers["Authorization"] = "Bearer {}".format(accesstoken)
+    headers["Content-Type"] = "application/json"
+
+    payload = {}
+    payload["name"] = playlistname
+
+    url = "https://api.spotify.com/v1/users/{}/playlists".format(userid)
+
+    r = requests.post(url, headers=headers, json=payload)
+
+    response = r.json()
+
+
+    if "collaborative" not in response:
+        print("error: problem creating spotify playlist")
+        print(response["error"])
+        return(False)
+
+    playlistid = response["id"]
+
+    # add tracks to playlist
+    while len(tracklist) > 100:
+
+        # add first 100
+        headers = {}
+        headers["Authorization"] = "Bearer {}".format(accesstoken)
+        headers["Content-Type"] = "application/json"
+
+        payload = {}
+        payload["uris"] = tracklist
+
+
+
+        r = requests.post("https://api.spotify.com/v1/users/{}/playlists/{}/tracks"
+                        .format(userid, playlistid),
+                        headers=headers,
+                        json=payload)
+
+        response = r.json()
+        if "snapshot_id" not in response:
+            print("error: problem adding songs to playlist")
+            print(response["error"])
+            return(False)
+
+        tracklist = tracklist[100:]
+
+    if tracklist:
+
+        # add the remainder of the tracks
+        headers = {}
+        headers["Authorization"] = "Bearer {}".format(accesstoken)
+        headers["Content-Type"] = "application/json"
+
+        payload = {}
+        payload["uris"] = tracklist
+
+        r = requests.post("https://api.spotify.com/v1/users/{}/playlists/{}/tracks"
+                        .format(userid, playlistid),
+                        headers=headers,
+                        json=payload)
+
+        response = r.json()
+        if "snapshot_id" not in response:
+            print("error: problem adding songs to playlist")
+            print(response["error"])
+            return(False)
+
+    return(True)
+
+
+
+
+
+    
 
 def main():
 
@@ -369,6 +472,8 @@ def main():
     newtracklist = sortbyflow(playlist)
 
     # create new playlist with that track order
+    createspotifyplaylist(accesstoken, playlist.name, playlists,
+                         newtracklist, userid)
 
 
 if __name__ == "__main__":

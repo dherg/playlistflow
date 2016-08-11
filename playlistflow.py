@@ -4,9 +4,11 @@ import requests
 import json
 import random
 import string
+import time
 import urllib.parse as urlparse
 from playlist import Playlist
 from track import Track
+
 
 
 def authenticateuser():
@@ -83,9 +85,18 @@ def requesttokens(code):
     response = r.json()
 
     if "refresh_token" not in response:
-        print('error: token request failed')
-        print(response["error"])
-        return(None, None)
+        if response["error"]:
+            if response["error"]["status"] == 429:
+                # wait for the amount of time specified in response header
+                time.sleep(int(r.headers["Retry-After"]) + 1)
+                # try again
+                return(requesttokens(code))
+            else:
+                print('error: token request failed')
+                return(None)
+        else:
+            print(response["error"])
+            return(None, None)
 
     refreshtoken = response["refresh_token"]
     accesstoken = response["access_token"]
@@ -111,9 +122,19 @@ def getuserid(accesstoken):
 
     response = r.json()
     if "id" not in response:
-        print('error: getuserid request failed')
-        print(response["error"])
-        return(None)
+        if response["error"]:
+            if response["error"]["status"] == 429:
+                # wait for the amount of time specified in response header
+                time.sleep(int(r.headers["Retry-After"]) + 1)
+                # try again
+                return(getuserid(accesstoken))
+
+            else:
+                print(response["error"])
+                return(None)
+        else:
+            print('error: getuserid request failed')
+            return(None)
 
     userid = response["id"]
     # print("userid = {}".format(userid))
@@ -150,9 +171,19 @@ def getplaylists(accesstoken, userid):
 
     # add data to playlist objects
     if "items" not in response:
-        print('error: getplaylists request failed')
-        print(response["error"])
-        return(None)
+        if response["error"]:
+            if response["error"]["status"] == 429:
+                # wait for the amount of time specified in response header
+                time.sleep(int(r.headers["Retry-After"]) + 1)
+                # try again
+                return(getplaylists(accesstoken, userid))
+
+            else:
+                print(response["error"])
+                return(None)
+        else:
+            print('error: getplaylists request failed')
+            return(None)
 
     numberreceived = len(response["items"])
     totalavailable = response["total"]
@@ -176,9 +207,18 @@ def getplaylists(accesstoken, userid):
         response = r.json()
 
         if "items" not in response:
-            print("error: getplaylists request failed")
-            print(response["error"])
-            return(None)
+            if response["error"]:
+                if response["error"]["status"] == 429:
+                    # wait for the amount of time specified in response header
+                    time.sleep(int(r.headers["Retry-After"]) + 1)
+                    # try again
+                    continue
+                else:
+                    print('error: getplaylists request failed')
+                    print(response["error"])
+                    return(None)
+            else:
+                return(None)
 
         for playlist in response["items"]:
             p = Playlist()
@@ -201,7 +241,7 @@ def getplaylistchoice(playlists):
     """
 
     # for testing
-    return(playlists["modestly built falls"])
+    return(playlists["xmu"])
 
     for i, name in enumerate(playlists):
         print("[{}] {}".format(i, name))
@@ -240,9 +280,18 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
     response = r.json()
 
     if "items" not in response:
-        print('error: getplaylists request failed')
-        print(response["error"])
-        return(None)
+        if response["error"]:
+            if response["error"]["status"] == 429:
+                # wait for the amount of time specified in response header
+                time.sleep(int(r.headers["Retry-After"]) + 1)
+                # try again
+                return(getplaylisttracks(accesstoken, chosenplaylist, userid))
+            else:
+                print(response["error"])
+                return(None)
+        else:
+            print('error: getplaylisttracks request failed')
+            return(None)
 
     numberreceived = len(response["items"])
     totalavailable = response["total"]
@@ -270,9 +319,18 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
         response = r.json()
 
         if "items" not in response:
-            print('error: getplaylists request failed')
-            print(response["error"])
-            return(None)
+            if response["error"]:
+                if response["error"]["status"] == 429:
+                    # wait for the amount of time specified in response header
+                    time.sleep(int(r.headers["Retry-After"]) + 1)
+                    # try again
+                    continue
+                else:
+                    print('error: getplaylisttracks request failed')
+                    print(response["error"])
+                    return(None)
+            else:
+                return(None)
 
         for track in response["items"]:
             t = Track()
@@ -307,9 +365,35 @@ def gettrackinfo(accesstoken, playlist):
         response = r.json()
 
         if "danceability" not in response:
-            print('error: getplaylists request failed')
-            print(response["error"])
-            return(None)
+            if response["error"]:
+                if response["error"]["status"] == 429:
+                    # wait correct amount
+                    time.sleep(int(r.headers["Retry-After"]) + 1)
+                    needinfo = True
+                    while needinfo:
+                        r = requests.get("https://api.spotify.com/v1/audio-features/{}"
+                                        .format(track),
+                                        headers=headers)
+                        response = r.json()
+                        if "danceability" in response:
+                            break
+                        elif response["error"]:
+                            if response["error"]["status"] == 429:
+                                # wait
+                                time.sleep(int(r.headers["Retry-After"]) + 1)
+                                continue
+                            else:
+                                print('error: gettrackinfo failed')
+                                print(response["error"])
+                                return(None)
+                else:
+                    print('error: gettrackinfo failed')
+                    print(response["error"])
+                    return(None)
+            else:
+                print('error: gettrackinfo failed')
+                print('no error response')
+                return(None)
 
         t = playlist.tracks[track]
         t.danceability = response["danceability"]
@@ -384,13 +468,40 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
 
 
     if "collaborative" not in response:
-        print("error: problem creating spotify playlist")
-        print(response["error"])
-        return(False)
+        if response["error"]:
+            if response["error"]["status"] == 429:
+                retry = True
+                while retry:
+                    time.sleep(int(r.headers["Retry-After"]) + 1)
+                    r = requests.post(url, headers=headers, json=payload)
+                    response = r.json()
+                    if response["error"]:
+                        if response["error"]["status"] == 429:
+                            continue
+                        else:
+                            print("error: problem creating spotify playlist")
+                            print(response["error"])
+                            return(False)
+                    elif "collaborative" in response:
+                        break
+                    else:
+                        print("error: problem creating spotify playlist")
+                        print('no error response')
+                        return(False)
+            else: 
+                print("error: problem creating spotify playlist")
+                print(response["error"])
+                return(False)
+        else:
+            print("error: problem creating spotify playlist")
+            print('no error response')
+            return(False)
 
     playlistid = response["id"]
 
     # add tracks to playlist
+    print("len(tracklist) = ".format(len(tracklist)))
+    numadded = 0
     while len(tracklist) > 100:
 
         # add first 100
@@ -399,9 +510,7 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
         headers["Content-Type"] = "application/json"
 
         payload = {}
-        payload["uris"] = tracklist
-
-
+        payload["uris"] = tracklist[numadded:numadded+100]
 
         r = requests.post("https://api.spotify.com/v1/users/{}/playlists/{}/tracks"
                         .format(userid, playlistid),
@@ -410,11 +519,21 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
 
         response = r.json()
         if "snapshot_id" not in response:
-            print("error: problem adding songs to playlist")
-            print(response["error"])
-            return(False)
+            if response["error"]:
+                if response["error"]["status"] == 429:
+                    time.sleep(int(r.headers["Retry-After"]) + 1)
+                    continue
+                else:
+                    print("error: problem adding songs to playlist")
+                    print(response["error"])
+                    return(False)
+            else:
+                print("error: problem adding songs to playlist")
+                print("no error response")
+                return(False)
 
-        tracklist = tracklist[100:]
+        tracklist = tracklist[numadded+100:]
+        numadded = numadded + 100
 
     if tracklist:
 
@@ -433,9 +552,37 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
 
         response = r.json()
         if "snapshot_id" not in response:
-            print("error: problem adding songs to playlist")
-            print(response["error"])
-            return(False)
+            if response["error"]:
+                if response["error"]["status"] == 429:
+                    retry = True
+                    while retry:
+                        time.sleep(int(r.headers["Retry-After"]) + 1)
+                        r = requests.post("https://api.spotify.com/v1/users/{}/playlists/{}/tracks"
+                        .format(userid, playlistid),
+                        headers=headers,
+                        json=payload)
+                        response = r.json()
+                        if "snapshot_id" in response:
+                            break
+                        elif response["error"]:
+                            if response["error"]["status"] == 429:
+                                continue
+                            else:
+                                print("error: createspotifyplaylist request failed")
+                                print(response["error"])
+                                return(False)
+                        else:
+                            print("error: createspotifyplaylist request failed")
+                            print("no error response")
+                            return(False)
+                else:
+                    print("error: createspotifyplaylist request failed")
+                    print(response["error"])
+                    return(False)
+            else:
+                print("error: createspotifyplaylist request failed")
+                print("no error response")
+                return(False)
 
     return(True)
 

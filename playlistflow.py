@@ -500,9 +500,8 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
     playlistid = response["id"]
 
     # add tracks to playlist
-    print("len(tracklist) = ".format(len(tracklist)))
-    numadded = 0
     while len(tracklist) > 100:
+        print("len(tracklist) = {}".format(len(tracklist)))
 
         # add first 100
         headers = {}
@@ -510,7 +509,7 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
         headers["Content-Type"] = "application/json"
 
         payload = {}
-        payload["uris"] = tracklist[numadded:numadded+100]
+        payload["uris"] = tracklist[:100]
 
         r = requests.post("https://api.spotify.com/v1/users/{}/playlists/{}/tracks"
                         .format(userid, playlistid),
@@ -532,10 +531,10 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
                 print("no error response")
                 return(False)
 
-        tracklist = tracklist[numadded+100:]
-        numadded = numadded + 100
+        tracklist = tracklist[100:]
 
     if tracklist:
+        print("len(tracklist) = {}".format(len(tracklist)))
 
         # add the remainder of the tracks
         headers = {}

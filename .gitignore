@@ -2,3 +2,4 @@ notes.txt
 keys.txt
 *.log
 __pycache__
+test.*

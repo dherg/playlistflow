@@ -410,6 +410,7 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
                     print(response["error"])
                     return(None)
             else:
+                print('error: unknown error')
                 return(None)
 
         for track in response["items"]:
@@ -581,7 +582,7 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
 
     # add tracks to playlist
     while len(tracklist) > 100:
-        print("len(tracklist) = {}".format(len(tracklist)))
+        # print("len(tracklist) = {}".format(len(tracklist)))
 
         # add first 100
         headers = {}

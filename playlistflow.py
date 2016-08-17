@@ -13,7 +13,7 @@ userid = None
 
 @app.route('/')
 def index():
-    return(render_template('test.html'))
+    return(render_template('index.html'))
 
 @app.route('/<string:s>')
 def string(s):
@@ -66,13 +66,15 @@ def selection():
         return('error')
 
     # get list of the playlist's tracks
-    playlist = pf.getplaylisttracks(accesstoken, chosenplaylist, userid)
+    playlist = pf.getplaylisttracks(accesstoken, chosenplaylist)
 
     # get info for each of that playlist's tracks
     pf.gettrackinfo(accesstoken, playlist)
 
     # run flow algorithm to determine correct order
     newtracklist = pf.sortbyflow(playlist)
+    if not newtracklist:
+        return('error; newtracklist is None')
 
     # create new playlist with that track order
     pf.createspotifyplaylist(accesstoken, playlist.name, playlists,

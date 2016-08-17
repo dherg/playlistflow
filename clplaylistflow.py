@@ -275,6 +275,7 @@ def getplaylists(accesstoken, userid):
         p.images = playlist["images"]
         p.name = playlist["name"]
         p.playlistid = playlist["id"]
+        p.ownerid = playlist["owner"]["id"]
         playlists[p.name] = p
 
     # if number received less than total available, request more
@@ -332,7 +333,7 @@ def getplaylistchoice(playlists):
 
     return(playlists[chosenplaylistname])
 
-def getplaylisttracks(accesstoken, chosenplaylist, userid):
+def getplaylisttracks(accesstoken, chosenplaylist):
     """
         Take a playlist object and fill out its 'tracks' attribute with a list
         of track objects
@@ -350,10 +351,8 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
     payload["limit"] = limit
     payload["offset"] = 0
 
-    playlistid = chosenplaylist.playlistid    
-
     r = requests.get(
-        "https://api.spotify.com/v1/users/{}/playlists/{}/tracks".format(userid, playlistid),
+        "https://api.spotify.com/v1/users/{}/playlists/{}/tracks".format(chosenplaylist.ownerid, chosenplaylist.playlistid),
         headers=headers,
         params=payload)
 
@@ -393,7 +392,7 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
 
         payload["offset"] = payload["offset"] + limit
         r = requests.get(
-        "https://api.spotify.com/v1/users/{}/playlists/{}/tracks".format(userid, playlistid),
+        "https://api.spotify.com/v1/users/{}/playlists/{}/tracks".format(chosenplaylist.ownerid, chosenplaylist.playlistid),
         headers=headers,
         params=payload)
         response = r.json()
@@ -414,6 +413,10 @@ def getplaylisttracks(accesstoken, chosenplaylist, userid):
                 return(None)
 
         for track in response["items"]:
+            if not track["track"]["id"]:
+                # possibly a locally saved song. skip over it, as no way to query audio features without
+                # knowing track id
+                continue
             t = Track()
             t.trackid = track["track"]["id"]
             t.albumname = track["track"]["album"]["name"]
@@ -439,6 +442,7 @@ def gettrackinfo(accesstoken, playlist):
     headers["Authorization"] = "Bearer {}".format(accesstoken)
 
     for track in playlist.tracks:
+        # print("in gettrackinfo, track={}".format(track))
 
         r = requests.get("https://api.spotify.com/v1/audio-features/{}".format(track),
             headers=headers)
@@ -507,8 +511,9 @@ def sortbyflow(playlist):
 
         sortedlist = sorted(unsortedlist, key = lambda x: x.valence)
         sorteduris = ["spotify:track:{}".format(track.trackid) for track in sortedlist]
-    except:
+    except Exception as e:
         print("error: sorting in sortbyflow failed")
+        print(e)
         return(None)
 
     return(sorteduris)
@@ -685,7 +690,7 @@ def main():
     chosenplaylist = getplaylistchoice(playlists)
 
     # get list of that playlist's tracks
-    playlist = getplaylisttracks(accesstoken, chosenplaylist, userid)
+    playlist = getplaylisttracks(accesstoken, chosenplaylist)
 
     # get info for each of that playlist's tracks
     gettrackinfo(accesstoken, playlist)

@@ -12,6 +12,7 @@ class Playlist():
         self.length = None
         self.name = None
         self.playlistid = None 
+        self.ownerid = None
 
     def __str__(self):
 

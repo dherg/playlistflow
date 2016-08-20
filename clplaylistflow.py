@@ -6,6 +6,7 @@ import random
 import string
 import time
 import urllib.parse as urlparse
+from collections import OrderedDict
 from playlist import Playlist
 from track import Track
 
@@ -266,7 +267,7 @@ def getplaylists(accesstoken, userid):
     numberreceived = len(response["items"])
     totalavailable = response["total"]
 
-    playlists = {}
+    playlists = OrderedDict()
 
     for playlist in response["items"]:
         p = Playlist()
@@ -582,6 +583,7 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
             return(False)
 
     playlistid = response["id"]
+    playlisturl = response["external_urls"]["spotify"]
 
     # add tracks to playlist
     while len(tracklist) > 100:
@@ -665,7 +667,7 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
                 print("no error response")
                 return(False)
 
-    return(True)
+    return(playlistname, playlisturl)
     
 
 def main():

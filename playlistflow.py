@@ -22,10 +22,6 @@ users = {}
 def index():
     return(render_template('index.html'))
 
-@app.route('/<string:s>')
-def string(s):
-    return(s)
-
 @app.route('/spotifylogin')
 def authenticate():
     user = User()
@@ -79,6 +75,7 @@ def callback():
 
     playlistnames = [x for x in user.playlists]
 
+
     # find out which playlist is wanted
     return(render_template('playlists.html', playlistnames=playlistnames))
 
@@ -115,10 +112,11 @@ def selection():
         return('error; newtracklist is None')
 
     # create new playlist with that track order
-    pf.createspotifyplaylist(user.accesstoken, playlist.name, user.playlists,
+    playlistname, url = pf.createspotifyplaylist(user.accesstoken, playlist.name, user.playlists,
                          newtracklist, user.userid)
 
-    return('playlist {} complete - enjoy!'.format(playlist.name))
+    return(render_template("result.html", name=playlistname, url=url))
+    # return('playlist {} complete - enjoy!'.format(playlist.name))
 
 @app.route('/about')
 def about():

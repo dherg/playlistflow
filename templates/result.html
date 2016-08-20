@@ -29,14 +29,8 @@
   </head>
 
   <body>
-    <h1> Choose one of your playlists: </h1>
-    {% for item in playlistnames %}
-      <li><a href="selection?choice={{item}}"> {{item}} </a></li>
-    {% endfor %}
-    <p></p>
-    <p>
-      or <a href="/"> start over from the beginning </a>
-    </p>
+    <h1> Your new playlist "{{name}}"" is complete! </h1>
+    <a href="{{url}}"> Check it out on Spotify! </a>
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="https://maxcdn.bootstrapcdn.com/js/ie10-viewport-bug-workaround.js"></script>

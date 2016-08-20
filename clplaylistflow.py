@@ -20,11 +20,11 @@ def authenticateuser():
     """
     # read application keys from text file
     with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()
+        appid, appsecret, redirecturi = f.read().splitlines()[:3]
 
     # generate random state string for request (for security)
-    state = ''.join(random.choice(string.ascii_lowercase
-                    + string.digits) for i in range(10))
+    state = ''.join(random.choice(string.ascii_lowercase + string.digits 
+                + string.ascii_uppercase) for i in range(20))
 
     # need access to public and private playlists
     scope = ("playlist-read-private playlist-read-collaborative" 
@@ -72,11 +72,11 @@ def getauthenticationurl():
 
     # read application keys from text file
     with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()
+        appid, appsecret, redirecturi = f.read().splitlines()[:3]
 
     # generate random state string for request (for security)
-    state = ''.join(random.choice(string.ascii_lowercase
-                    + string.digits) for i in range(10))
+    state = ''.join(random.choice(string.ascii_lowercase + string.digits 
+                + string.ascii_uppercase) for i in range(20))
 
     # need access to public and private playlists
     scope = ("playlist-read-private playlist-read-collaborative" 
@@ -111,11 +111,9 @@ def requesttokens(code):
         Returns access token and refresh token, or None,None if unable to 
         obtain tokens.
     """
-
-    print("code = {}".format(code))
     
     with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()
+        appid, appsecret, redirecturi = f.read().splitlines()[:3]
 
     payload = {}
     payload["grant_type"] = "authorization_code"
@@ -165,7 +163,7 @@ def getrequesttokensurl(code):
     """
 
     with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()
+        appid, appsecret, redirecturi = f.read().splitlines()[:3]
 
     payload = {}
     payload["grant_type"] = "authorization_code"
@@ -587,7 +585,6 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
 
     # add tracks to playlist
     while len(tracklist) > 100:
-        # print("len(tracklist) = {}".format(len(tracklist)))
 
         # add first 100
         headers = {}
@@ -620,7 +617,6 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
         tracklist = tracklist[100:]
 
     if tracklist:
-        print("len(tracklist) = {}".format(len(tracklist)))
 
         # add the remainder of the tracks
         headers = {}

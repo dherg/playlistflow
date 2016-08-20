@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, session, make_response, url_for
+from flask import Flask, render_template, redirect, request, session
 import urllib.parse as urlparse
 import clplaylistflow as pf
 from user import User
@@ -12,7 +12,7 @@ app = Flask(__name__)
 # refreshtoken = None
 # userid = None
 
-# session: has cookie for state. e.g. session[<state>] = <state>
+# session: has cookie for state. e.g. session["state"] = <state>
 # global users dict (later redis db): key is <state>, value is user object
 
 users = {}
@@ -32,38 +32,29 @@ def authenticate():
     user.state, url = pf.getauthenticationurl()
 
     # add this user to sessions
-    session[user.state] = user.state
+    session["state"] = user.state
 
     # add this user to dict
     users[user.state] = user
 
-
     print('sent state {}'.format(user.state))
 
-    # make response and set the cookie
-    response = make_response(redirect(url))
-    response.set_cookie('state', user.state)
-
-    return(response)
+    return(redirect(url))
 
 @app.route('/callback')
 def callback():
     url = request.url
     parseduri = urlparse.parse_qs(urlparse.urlparse(url).query)
 
-    # get cookie
-    state = request.cookies.get('state')  
-
-    try:
-        returnedstate = parseduri['state'][0]
-    except:
-        print("error: problem getting returnedstate out of callback url")
-
-    if state != returnedstate:
-        if not state:
-            return(redirect(url_for("index")))
-        else:
+    # check cookie
+    if "state" in session:
+        state = session["state"]
+        if state != parseduri['state'][0]:
             return('error: sent state ({}) not equal to return state ({})'.format(state, parseduri['state'][0]))
+        #print('\n\n{} in session\n\n'.format(parseduri['state'][0]))
+    else:
+        print('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
+        # TODO: server error page/ redirect to index
 
     # get user object from users dict
     if state not in users:
@@ -94,8 +85,12 @@ def callback():
 @app.route('/selection')
 def selection():
 
-    # get cookie
-    state = request.cookies.get('state')
+    # check cookie for state
+    if "state" in session:
+        state = session["state"]
+    else:
+        print('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
+        # TODO: server error page/ redirect to index
 
     # get user object from users dict
     if state not in users:

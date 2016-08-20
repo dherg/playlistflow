@@ -1,15 +1,22 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, session, make_response, url_for
 import urllib.parse as urlparse
 import clplaylistflow as pf
+from user import User
 
 app = Flask(__name__)
 
 # need dict mapping user (by cookie) to data (playlists, track info)
-state = None # associate this state with some user, in dict?
-playlists = None # also in dict
-accesstoken = None
-refreshtoken = None
-userid = None
+# state = None # associate this state with some user, in dict?
+# playlists = None # also in dict
+# accesstoken = None
+# refreshtoken = None
+# userid = None
+
+# session: has cookie for state. e.g. session[<state>] = <state>
+# global users dict (later redis db): key is <state>, value is user object
+
+users = {}
+
 
 @app.route('/')
 def index():
@@ -21,19 +28,48 @@ def string(s):
 
 @app.route('/spotifylogin')
 def authenticate():
-    global state
-    state, url = pf.getauthenticationurl()
-    # print(url)
-    return(redirect(url))
+    user = User()
+    user.state, url = pf.getauthenticationurl()
+
+    # add this user to sessions
+    session[user.state] = user.state
+
+    # add this user to dict
+    users[user.state] = user
+
+
+    print('sent state {}'.format(user.state))
+
+    # make response and set the cookie
+    response = make_response(redirect(url))
+    response.set_cookie('state', user.state)
+
+    return(response)
 
 @app.route('/callback')
 def callback():
     url = request.url
     parseduri = urlparse.parse_qs(urlparse.urlparse(url).query)
-    # check that state returned is state sent for this request
-    if state != parseduri['state'][0]:
-        print("error: sent state doesn't match uri returned state!")
-        # TODO: serve up some error page
+
+    # get cookie
+    state = request.cookies.get('state')  
+
+    try:
+        returnedstate = parseduri['state'][0]
+    except:
+        print("error: problem getting returnedstate out of callback url")
+
+    if state != returnedstate:
+        if not state:
+            return(redirect(url_for("index")))
+        else:
+            return('error: sent state ({}) not equal to return state ({})'.format(state, parseduri['state'][0]))
+
+    # get user object from users dict
+    if state not in users:
+        print('user with state={} not found in user dict. redirecting to index'.format(state))
+        return("error: are cookies enabled? if not, try enabling them.")
+    user = users[state]
 
     # get authorization code (or error code) from uri
     if 'code' in parseduri:
@@ -41,35 +77,42 @@ def callback():
     else:
         error = parseduri['error'][0]
         return(None)
-    global accesstoken
-    global refreshtoken
-    accesstoken, refreshtoken = pf.requesttokens(code)
+
+    user.accesstoken, user.refreshtoken = pf.requesttokens(code)
 
     # have tokens, get userid
-    global userid
-    userid = pf.getuserid(accesstoken)
+    user.userid = pf.getuserid(user.accesstoken)
 
     # build dict of user's playlists
-    global playlists
-    playlists = pf.getplaylists(accesstoken, userid)
+    user.playlists = pf.getplaylists(user.accesstoken, user.userid)
 
-    playlistnames = [x for x in playlists]
+    playlistnames = [x for x in user.playlists]
 
     # find out which playlist is wanted
     return(render_template('playlists.html', playlistnames=playlistnames))
 
 @app.route('/selection')
 def selection():
+
+    # get cookie
+    state = request.cookies.get('state')
+
+    # get user object from users dict
+    if state not in users:
+        print('user with state={} not found in user dict. redirecting to index'.format(state))
+        return("error: are cookies enabled? if not, try enabling them.")
+    user = users[state]
+
     if request.args.get('choice'):
-        chosenplaylist = playlists[request.args.get('choice')]
+        chosenplaylist = user.playlists[request.args.get('choice')]
     else:
         return('error')
 
     # get list of the playlist's tracks
-    playlist = pf.getplaylisttracks(accesstoken, chosenplaylist)
+    playlist = pf.getplaylisttracks(user.accesstoken, chosenplaylist)
 
     # get info for each of that playlist's tracks
-    pf.gettrackinfo(accesstoken, playlist)
+    pf.gettrackinfo(user.accesstoken, playlist)
 
     # run flow algorithm to determine correct order
     newtracklist = pf.sortbyflow(playlist)
@@ -77,8 +120,8 @@ def selection():
         return('error; newtracklist is None')
 
     # create new playlist with that track order
-    pf.createspotifyplaylist(accesstoken, playlist.name, playlists,
-                         newtracklist, userid)
+    pf.createspotifyplaylist(user.accesstoken, playlist.name, user.playlists,
+                         newtracklist, user.userid)
 
     return('playlist {} complete - enjoy!'.format(playlist.name))
 
@@ -86,7 +129,14 @@ def selection():
 def about():
     return(render_template("about.html"))
 
+def setappkey():
+    with open("keys.txt", "r") as f:
+        app.secret_key = f.read().splitlines()[3]
+
+
 if __name__ == "__main__":
     app.debug = True
-    app.run()
+    setappkey()
+    app.run(threaded=True)
+
     

@@ -10,7 +10,7 @@ from collections import OrderedDict
 from playlist import Playlist
 from track import Track
 
-
+import sort
 
 def authenticateuser():
     """ 
@@ -506,9 +506,7 @@ def sortbyflow(playlist):
         there is an error.
     """
     try:
-        unsortedlist = [playlist.tracks[x] for x in playlist.tracks]
-
-        sortedlist = sorted(unsortedlist, key = lambda x: x.valence)
+        sortedlist = sort.simpleflow(playlist, "valence")
         sorteduris = ["spotify:track:{}".format(track.trackid) for track in sortedlist]
     except Exception as e:
         print("error: sorting in sortbyflow failed")

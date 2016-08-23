@@ -451,26 +451,30 @@ def gettrackinfo(accesstoken, playlist):
     headers = {}
     headers["Authorization"] = "Bearer {}".format(accesstoken)
 
-    for track in playlist.tracks:
-        # print("in gettrackinfo, track={}".format(track))
+    offset = 0
 
-        r = requests.get("https://api.spotify.com/v1/audio-features/{}".format(track.trackid),
-            headers=headers)
+    needattributes = [track.trackid for track in playlist.tracks]
+
+    while offset < len(needattributes):
+        params = {'ids': ','.join(needattributes[offset:100+offset])}
+        r = requests.get("https://api.spotify.com/v1/audio-features/",
+                         headers=headers,
+                         params=params)
 
         response = r.json()
 
-        if "danceability" not in response:
+        if "audio_features" not in response:
             if response["error"]:
                 if response["error"]["status"] == 429:
                     # wait correct amount
                     time.sleep(int(r.headers["Retry-After"]) + 1)
                     needinfo = True
                     while needinfo:
-                        r = requests.get("https://api.spotify.com/v1/audio-features/{}"
-                                        .format(track.trackid),
-                                        headers=headers)
+                        r = requests.get("https://api.spotify.com/v1/audio-features/",
+                                        headers=headers,
+                                        params=params)
                         response = r.json()
-                        if "danceability" in response:
+                        if "audio_features" in response:
                             break
                         elif response["error"]:
                             if response["error"]["status"] == 429:
@@ -490,20 +494,28 @@ def gettrackinfo(accesstoken, playlist):
                 print('no error response')
                 return(None)
 
-        track.danceability = response["danceability"]
-        track.energy = response["energy"]
-        track.key = response["key"]
-        track.loudness = response["loudness"]
-        track.mode = response["mode"]
-        track.speechiness = response["speechiness"]
-        track.acousticness = response["acousticness"]
-        track.instrumentalness = response["instrumentalness"]
-        track.liveness = response["liveness"]
-        track.loudness = response["loudness"]
-        track.valence = response["valence"]
-        track.tempo = response["tempo"]
-        track.duration_ms = response["duration_ms"]
-        track.time_signature = response["time_signature"]
+        for i in range(len(response["audio_features"])):
+            try:
+                playlist.tracks[i+offset].danceability = response["audio_features"][i]["danceability"]
+                playlist.tracks[i+offset].energy = response["audio_features"][i]["energy"]
+                playlist.tracks[i+offset].key = response["audio_features"][i]["key"]
+                playlist.tracks[i+offset].loudness = response["audio_features"][i]["loudness"]
+                playlist.tracks[i+offset].mode = response["audio_features"][i]["mode"]
+                playlist.tracks[i+offset].speechiness = response["audio_features"][i]["speechiness"]
+                playlist.tracks[i+offset].acousticness = response["audio_features"][i]["acousticness"]
+                playlist.tracks[i+offset].instrumentalness = response["audio_features"][i]["instrumentalness"]
+                playlist.tracks[i+offset].liveness = response["audio_features"][i]["liveness"]
+                playlist.tracks[i+offset].loudness = response["audio_features"][i]["loudness"]
+                playlist.tracks[i+offset].valence = response["audio_features"][i]["valence"]
+                playlist.tracks[i+offset].tempo = response["audio_features"][i]["tempo"]
+                playlist.tracks[i+offset].duration_ms = response["audio_features"][i]["duration_ms"]
+                playlist.tracks[i+offset].time_signature = response["audio_features"][i]["time_signature"]
+            except Exception as e:
+                print('error: error getting attributes from returned JSON')
+                print('this piece of json looks like:\n{}'.format(response["audiofeatures"][i]))
+
+        offset = offset + len(response["audio_features"])
+
 
         # t.printattributes()
 
@@ -518,7 +530,7 @@ def sortbyflow(playlist):
         there is an error.
     """
     try:
-        sortedlist = sort.simpleflow(playlist, "valence")
+        sortedlist = sort.nnflow(playlist)
         # sortedlist = sort.nnflow(playlist)
         sorteduris = ["spotify:track:{}".format(track.trackid) for track in sortedlist]
     except Exception as e:

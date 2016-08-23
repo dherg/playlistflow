@@ -12,7 +12,7 @@ def simpleflow(playlist, attribute="valence"):
         Returns a list of Tracks in sorted order, or None if there is an error
     """
     try:
-        unsortedlist = [playlist.tracks[x] for x in playlist.tracks]
+        unsortedlist = playlist.tracks
         sortedlist = sorted(unsortedlist, key = lambda x: getattr(x, attribute))
     except Exception as e:
         print(e)
@@ -47,7 +47,7 @@ def nnflow(playlist):
         Returns a list of Tracks in sorted order, or None if there is an error
         during the sorting.
     """
-    unsortedlist = [playlist.tracks[x] for x in playlist.tracks]
+    unsortedlist = playlist.tracks
     sortedlist = []
 
     # normalize and get total values for each track. keep track of lowest total

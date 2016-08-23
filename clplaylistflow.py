@@ -392,7 +392,7 @@ def getplaylisttracks(accesstoken, chosenplaylist):
         t.artistname = track["track"]["artists"][0]["name"]
         t.popularity = track["track"]["popularity"]
         # print(t.trackid, t.trackname, t.artistname, t.albumname)
-        chosenplaylist.tracks[t.trackid] = t
+        chosenplaylist.tracks.append(t)
 
     # if we haven't gotten all of the tracks in the playlist, request the next
     # batch
@@ -432,7 +432,7 @@ def getplaylisttracks(accesstoken, chosenplaylist):
             t.trackname = track["track"]["name"]
             t.artistname = track["track"]["artists"][0]["name"]
             # print(t.trackid, t.trackname, t.artistname, t.albumname)
-            chosenplaylist.tracks[t.trackid] = t
+            chosenplaylist.tracks.append(t)
                
         numberreceived = numberreceived + len(response["items"])
 
@@ -454,7 +454,7 @@ def gettrackinfo(accesstoken, playlist):
     for track in playlist.tracks:
         # print("in gettrackinfo, track={}".format(track))
 
-        r = requests.get("https://api.spotify.com/v1/audio-features/{}".format(track),
+        r = requests.get("https://api.spotify.com/v1/audio-features/{}".format(track.trackid),
             headers=headers)
 
         response = r.json()
@@ -467,7 +467,7 @@ def gettrackinfo(accesstoken, playlist):
                     needinfo = True
                     while needinfo:
                         r = requests.get("https://api.spotify.com/v1/audio-features/{}"
-                                        .format(track),
+                                        .format(track.trackid),
                                         headers=headers)
                         response = r.json()
                         if "danceability" in response:
@@ -490,21 +490,20 @@ def gettrackinfo(accesstoken, playlist):
                 print('no error response')
                 return(None)
 
-        t = playlist.tracks[track]
-        t.danceability = response["danceability"]
-        t.energy = response["energy"]
-        t.key = response["key"]
-        t.loudness = response["loudness"]
-        t.mode = response["mode"]
-        t.speechiness = response["speechiness"]
-        t.acousticness = response["acousticness"]
-        t.instrumentalness = response["instrumentalness"]
-        t.liveness = response["liveness"]
-        t.loudness = response["loudness"]
-        t.valence = response["valence"]
-        t.tempo = response["tempo"]
-        t.duration_ms = response["duration_ms"]
-        t.time_signature = response["time_signature"]
+        track.danceability = response["danceability"]
+        track.energy = response["energy"]
+        track.key = response["key"]
+        track.loudness = response["loudness"]
+        track.mode = response["mode"]
+        track.speechiness = response["speechiness"]
+        track.acousticness = response["acousticness"]
+        track.instrumentalness = response["instrumentalness"]
+        track.liveness = response["liveness"]
+        track.loudness = response["loudness"]
+        track.valence = response["valence"]
+        track.tempo = response["tempo"]
+        track.duration_ms = response["duration_ms"]
+        track.time_signature = response["time_signature"]
 
         # t.printattributes()
 

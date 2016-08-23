@@ -7,7 +7,7 @@ class Playlist():
 
     def __init__(self):
 
-        self.tracks = {} # dict mapping trackIDs to track objects
+        self.tracks = [] # list of track objects for tracks in playlist
         self.images = None
         self.length = None
         self.name = None

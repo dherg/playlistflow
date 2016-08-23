@@ -103,6 +103,10 @@ def selection():
     # get list of the playlist's tracks
     playlist = pf.getplaylisttracks(user.accesstoken, chosenplaylist)
 
+    # double check to make sure playlist isn't empty
+    if not playlist.tracks:
+        return("Looks like the playlist you chose doesn't have any songs in it. Try a different one!")
+
     # get info for each of that playlist's tracks
     pf.gettrackinfo(user.accesstoken, playlist)
 

@@ -20,10 +20,68 @@ class Track():
         self.acousticness = None
         self.instrumentalness = None
         self.liveness = None
+        self.loudness = None
         self.valence = None
         self.tempo = None
         self.duration_ms = None
         self.time_signature = None
+        self.normalizedlist = None # a list of attribute values, normalized to
+                                   # float from[0.0, 1.0] for sensible 
+                                   # comparison
+        self.normtotal = None
+
+    def createnormalizedlist(self):
+
+        # initialize list
+        self.normalizedlist = []
+
+        # describe list of weights to give each attribute. may be useful to
+        # tweak later to determine best weightings
+        weights = [1, # danceability
+                   1, # energy
+                   1, # mode
+                   1, # speechiness
+                   1, # acousticness
+                   1, # instrumentalness
+                   1, # liveness
+                   1, # loudness
+                   1, # valence
+                   1, # tempo
+                    ]
+
+        # danceability [0,1] ; 1 more danceable
+        self.normalizedlist.append(self.danceability * weights[0])
+
+        # energy [0,1] ; 1 more energetic
+        self.normalizedlist.append(self.danceability * weights[1])
+
+        # mode 0 or 1. 0 minor 1 major
+        self.normalizedlist.append(self.mode * weights[2])
+
+        # speechiness [0,1] 1 more speechy
+        self.normalizedlist.append(self.speechiness * weights[3])
+
+        # acousticness [0,1] 1 more acoustic
+        self.normalizedlist.append(self.acousticness * weights[4])
+
+        # instrumentalness [0,1] 1 more instrumental
+        self.normalizedlist.append(self.instrumentalness * weights[5])
+
+        # liveness [0,1] 1 more likely performed live
+        self.normalizedlist.append(self.liveness * weights[6])
+
+        # loudness around [-60, 0], larger numbers louder
+        self.normalizedlist.append(((self.loudness + 60) / 60) * weights[7])
+
+        # valence [0,1] 1 sounds more positive
+        self.normalizedlist.append(self.valence * weights[8])
+
+        # tempo, most probably in range of 60 - 180 or so
+        self.normalizedlist.append(self.tempo / 180 * weights[9])
+
+        # add total sum
+        self.normtotal = sum(self.normalizedlist)
+
 
     def __str__(self):
 

@@ -5,13 +5,16 @@ import json
 import random
 import string
 import time
+import traceback
 import urllib.parse as urlparse
 from collections import OrderedDict
+
 from playlist import Playlist
 from track import Track
-
 import sort
+from timing import timeit
 
+@timeit
 def authenticateuser():
     """ 
         Send authorization request, get authorization code in uri, use
@@ -62,6 +65,7 @@ def authenticateuser():
         error = parseduri['error'][0]
         return(None)
 
+@timeit
 def getauthenticationurl():
     """ 
         For use as imported function. Generate and return a properly formatted
@@ -104,6 +108,7 @@ def getauthenticationurl():
     else:
         return(None, None)
 
+@timeit
 def requesttokens(code):
     """ 
         Exchange authorization code for access and refresh tokens with a POST
@@ -155,6 +160,7 @@ def requesttokens(code):
 
     return(accesstoken, refreshtoken)
 
+@timeit
 def getrequesttokensurl(code):
     """
         Given an authorization code, format and return a POST url to
@@ -184,6 +190,7 @@ def getrequesttokensurl(code):
     else:
         return(None)
 
+@timeit
 def getuserid(accesstoken):
     """ 
         Get the current user's id using the /v1/me endpoint.
@@ -219,6 +226,7 @@ def getuserid(accesstoken):
     # print("userid = {}".format(userid))
     return(userid)
 
+@timeit
 def getplaylists(accesstoken, userid):
     """ 
         Build a dict containing the names, thumbnail URLs, and playlist IDs of
@@ -311,6 +319,7 @@ def getplaylists(accesstoken, userid):
 
     return(playlists)
 
+@timeit
 def getplaylistchoice(playlists):
     """
         Present user with list of their playlists, and get their choice for
@@ -332,6 +341,7 @@ def getplaylistchoice(playlists):
 
     return(playlists[chosenplaylistname])
 
+@timeit
 def getplaylisttracks(accesstoken, chosenplaylist):
     """
         Take a playlist object and fill out its 'tracks' attribute with a list
@@ -429,6 +439,7 @@ def getplaylisttracks(accesstoken, chosenplaylist):
     # print(chosenplaylist.tracks)
     return(chosenplaylist)
 
+@timeit
 def gettrackinfo(accesstoken, playlist):
     """
         Given a playlist object, fills the audio features for each track
@@ -489,6 +500,7 @@ def gettrackinfo(accesstoken, playlist):
         t.acousticness = response["acousticness"]
         t.instrumentalness = response["instrumentalness"]
         t.liveness = response["liveness"]
+        t.loudness = response["loudness"]
         t.valence = response["valence"]
         t.tempo = response["tempo"]
         t.duration_ms = response["duration_ms"]
@@ -496,6 +508,7 @@ def gettrackinfo(accesstoken, playlist):
 
         # t.printattributes()
 
+@timeit
 def sortbyflow(playlist):
     """
         Takes in a Playlist object with Tracks filled with attributes, applies
@@ -507,14 +520,16 @@ def sortbyflow(playlist):
     """
     try:
         sortedlist = sort.simpleflow(playlist, "valence")
+        # sortedlist = sort.nnflow(playlist)
         sorteduris = ["spotify:track:{}".format(track.trackid) for track in sortedlist]
     except Exception as e:
         print("error: sorting in sortbyflow failed")
-        print(e)
+        traceback.print_exc()
         return(None)
 
     return(sorteduris)
 
+@timeit
 def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
     """
         Use the given tracklist to create a new playlist on spotify with the 

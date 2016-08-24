@@ -28,9 +28,26 @@
     <![endif]-->
   </head>
 
-  <body>
-    <h1> Your new playlist "{{name}}"" is complete! </h1>
-    <a href="{{url}}"> Check it out on Spotify! </a>
+  <body style="background: #2EBD59">
+    <div class="container">
+      <div class="header clearfix">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" class="active"><a href="/">Home</a></li>
+            <li role="presentation"><a href="/about">About</a></li>
+              <!-- <li role="presentation"><a href="#">Contact</a></li> -->
+          </ul>
+        </nav>
+        <h3 class="text-muted" style="color: #000000">Playlist Flow</h3>
+      </div>
+      <div class="jumbotron">
+        <h3> Your new playlist "{{name}}" is complete! </h1>
+        <a href="{{url}}"> Check it out on Spotify! </a>
+      </div>
+      <footer class="footer">
+        <p>&copy; 2016 David Hergenroeder</p>
+      </footer>
+    </div>
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="https://maxcdn.bootstrapcdn.com/js/ie10-viewport-bug-workaround.js"></script>

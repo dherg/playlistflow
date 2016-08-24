@@ -26,6 +26,13 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+    <style type="text/css">
+      body { background: #2EBD59 !important;
+              }
+
+    </style>
+
   </head>
 
   <body>
@@ -34,12 +41,12 @@
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills pull-right">
-            <li role="presentation" class="active"><a href="#">Home</a></li>
+            <li role="presentation" class="active"><a href="/">Home</a></li>
             <li role="presentation"><a href="/about">About</a></li>
             <!-- <li role="presentation"><a href="#">Contact</a></li> -->
           </ul>
         </nav>
-        <h3 class="text-muted">Playlist Flow</h3>
+        <h3 class="text-muted" style="color: #000000">Playlist Flow</h3>
       </div>
 
       <div class="jumbotron">
@@ -59,7 +66,7 @@
           <h4>Step 3.</h4>
           <p>Sit back and enjoy your new, smoother playlist!</p>
         </div>
-        <div class="col-lg-6">
+        <div class="col-lg-6" style="text-align: center">
          <!--  <h4>Subheading</h4>
           <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
 
@@ -68,10 +75,15 @@
 
           <h4>Subheading</h4>
           <p>Maecenas sed diam eget risus varius blandit sit amet non magna.</p> -->
-          <img src={{ url_for('static', filename = 'images/woman-music.jpg') }} alt="Listening to Music" style="width:80%; height:40%">
-
+          <img src={{ url_for('static', filename = 'images/turntable-1337986_1280.jpg') }} alt="Listening to Music" style="width:80%; height:40%; -moz-box-shadow: 5px 5px 5px #888;
+-webkit-box-shadow: 5px 5px 5px #888;
+box-shadow: 5px 5px 5px #888;">
+        
         </div>
       </div>
+      <p></p>
+      <p></p>
+
 
       <footer class="footer">
         <p>&copy; 2016 David Hergenroeder</p>

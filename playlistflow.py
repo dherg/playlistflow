@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, request, session
 from urlparse import urlparse, parse_qs
+import os
 import clplaylistflow as pf
 from user import User
 
@@ -127,9 +128,7 @@ def about():
     return(render_template("about.html"))
 
 def setappkey():
-    print("setting app key")
-    with open("keys.txt", "r") as f:
-        app.secret_key = f.read().splitlines()[3]
+    app.secret_key = os.environ.get('FLASKSECRET')
 
 # set the app key
 setappkey()

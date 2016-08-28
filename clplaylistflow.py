@@ -6,6 +6,7 @@ import random
 import string
 import time
 import traceback
+import os
 from urlparse import urlparse, parse_qs
 from collections import OrderedDict
 
@@ -13,6 +14,19 @@ from playlist import Playlist
 from track import Track
 import sort
 from timing import timeit
+
+def readappkeys():
+    """
+        Read appid, appsecret, and redirecturl from environmental variables.
+
+        Returns (appid, appsecret, redirecturl) or None if error.
+    """
+    appid = os.environ.get('APPID')
+    appsecret = os.environ.get('APPSECRET')
+    redirecturi = os.environ.get('REDIRECTURI')
+
+    return(appid, appsecret, redirecturi)
+
 
 @timeit
 def authenticateuser():
@@ -22,9 +36,8 @@ def authenticateuser():
         
         Returns a code or None if some error prevented authentication.
     """
-    # read application keys from text file
-    with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()[:3]
+    # read application keys from env variables
+    appid, appsecret, redirecturi = readappkeys()
 
     # generate random state string for request (for security)
     state = ''.join(random.choice(string.ascii_lowercase + string.digits 
@@ -75,9 +88,8 @@ def getauthenticationurl():
         string, or None, None if a problem is encountered.
     """
 
-    # read application keys from text file
-    with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()[:3]
+    # read application keys from env variables
+    appid, appsecret, redirecturi = readappkeys()
 
     # generate random state string for request (for security)
     state = ''.join(random.choice(string.ascii_lowercase + string.digits 
@@ -118,8 +130,7 @@ def requesttokens(code):
         obtain tokens.
     """
     
-    with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()[:3]
+    appid, appsecret, redirecturi = readappkeys()
 
     payload = {}
     payload["grant_type"] = "authorization_code"
@@ -169,8 +180,7 @@ def getrequesttokensurl(code):
         Returns a URL to request tokens, or None if unsuccessful
     """
 
-    with open("keys.txt", "r") as f:
-        appid, appsecret, redirecturi = f.read().splitlines()[:3]
+    appid, appsecret, redirecturi = readappkeys()
 
     payload = {}
     payload["grant_type"] = "authorization_code"

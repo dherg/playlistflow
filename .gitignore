@@ -3,3 +3,4 @@ keys.txt
 *.log
 __pycache__
 test.*
+*.pyc

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, request, session
-import urllib.parse as urlparse
+from urlparse import urlparse, parse_qs
 import clplaylistflow as pf
 from user import User
 
@@ -40,7 +40,7 @@ def authenticate():
 @app.route('/callback')
 def callback():
     url = request.url
-    parseduri = urlparse.parse_qs(urlparse.urlparse(url).query)
+    parseduri = parse_qs(urlparse(url).query)
 
     # check cookie
     if "state" in session:
@@ -127,13 +127,15 @@ def about():
     return(render_template("about.html"))
 
 def setappkey():
+    print("setting app key")
     with open("keys.txt", "r") as f:
         app.secret_key = f.read().splitlines()[3]
 
+# set the app key
+setappkey()
 
 if __name__ == "__main__":
     app.debug = True
-    setappkey()
-    app.run(threaded=True)
+    app.run(threaded=True, host="0.0.0.0", port=5000)
 
     

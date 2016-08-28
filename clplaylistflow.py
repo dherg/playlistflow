@@ -6,7 +6,7 @@ import random
 import string
 import time
 import traceback
-import urllib.parse as urlparse
+from urlparse import urlparse, parse_qs
 from collections import OrderedDict
 
 from playlist import Playlist
@@ -50,7 +50,7 @@ def authenticateuser():
 
     # parse uri response
     uri = input("callback uri? ")
-    parseduri = urlparse.parse_qs(urlparse.urlparse(uri).query)
+    parseduri = parse_qs(urlparse(uri).query)
 
     # check that state returned is state sent for this request
     if state != parseduri['state'][0]:

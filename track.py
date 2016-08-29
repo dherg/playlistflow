@@ -40,10 +40,10 @@ class Track():
                    3, # energy
                    1, # mode
                    1, # speechiness
-                   1, # acousticness
+                   2, # acousticness
                    1, # instrumentalness
                    1, # liveness
-                   1, # loudness
+                   0.1, # loudness
                    3, # valence
                    1, # tempo
                     ]

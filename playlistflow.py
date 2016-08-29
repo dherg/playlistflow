@@ -59,6 +59,7 @@ def callback():
     # get user object from users dict
     if state not in users:
         print('user with state={} not found in user dict.'.format(state))
+        print('contents of users:\n{}'.format(users))
         return("error: are cookies enabled? if not, try enabling them.")
     user = users[state]
 
@@ -96,6 +97,7 @@ def selection():
     # get user object from users dict
     if state not in users:
         print('user with state={} not found in user dict. redirecting to index'.format(state))
+        print('contents of users:\n{}'.format(users))
         return("error: are cookies enabled? if not, try enabling them.")
     user = users[state]
 

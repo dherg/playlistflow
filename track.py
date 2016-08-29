@@ -35,17 +35,16 @@ class Track():
         # initialize list
         self.normalizedlist = []
 
-        # describe list of weights to give each attribute. may be useful to
-        # tweak later to determine best weightings
-        weights = [1, # danceability
-                   1, # energy
+        # list of weights to give each attribute
+        weights = [3, # danceability
+                   3, # energy
                    1, # mode
                    1, # speechiness
                    1, # acousticness
                    1, # instrumentalness
                    1, # liveness
                    1, # loudness
-                   1, # valence
+                   3, # valence
                    1, # tempo
                     ]
 

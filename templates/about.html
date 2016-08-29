@@ -41,10 +41,24 @@
         <h3 class="text-muted" style="color: #000000">Playlist Flow</h3>
       </div>
       <div class="jumbotron">
-        Developed by <a href="https://www.github.com/dherg"> David Hergenroeder </a> with <a href="http://flask.pocoo.org/"> Flask </a> and the <a href="https://developer.spotify.com/web-api/"> Spotify API</a>.
+        <h3> How it Works </h3>
+        <p> 
+          Spotify's API contains tons of different attributes for each song, from
+          basic stuff like tempo and song length, to more abstract things like "valence"
+          and "danceability." You can check out all of the attributes <a href="https://developer.spotify.com/web-api/get-audio-features/">here</a>.
+
+          The flow algorithm takes each song's attributes and weights them based on their importance to the overall flow. The first song in the playlist is chosen arbitrarily, and then the "closest" song is chosen by finding the song with the most similar attribute values. This <a href="https://en.wikipedia.org/wiki/Nearest_neighbour_algorithm">"nearest neighbor"</a> search gives us a pretty smooth playlist. (It turns out that finding the absolute optimal playlist with the shortest "distances" between neighboring songs would be <a href="https://en.wikipedia.org/wiki/Travelling_salesman_problem">pretty hard</a>.)
+
+        </p>
+        <p>
+          Developed by <a href="https://www.github.com/dherg"> David Hergenroeder</a> with <a href="http://flask.pocoo.org/"> Flask</a> and the <a href="https://developer.spotify.com/web-api/"> Spotify API</a>.
+        </p>
+        <p>
+          <a href="https://www.github.com/dherg/playlistflow"> Fork this website on Github! </a>
+        </p>
       </div>
       <footer class="footer">
-        <p>&copy; 2016 David Hergenroeder</p>
+        <p> &copy; 2016 David Hergenroeder. <iframe src="https://ghbtns.com/github-btn.html?user=dherg&type=follow&count=false" frameborder="0" scrolling="10" width="170px" height="20px" align="right"></iframe> </p>
       </footer>
     </div>
 

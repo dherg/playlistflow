@@ -28,6 +28,9 @@ def authenticate():
     user = User()
     user.state, url = pf.getauthenticationurl()
 
+    # clear old session
+    session.clear()
+
     # add this user to sessions
     session["state"] = user.state
 

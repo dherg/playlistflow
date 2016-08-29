@@ -54,13 +54,13 @@ def callback():
         #print('\n\n{} in session\n\n'.format(parseduri['state'][0]))
     else:
         print('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
+        return("error: are cookies enabled? if not, try enabling them.")
         # TODO: server error page/ redirect to index
 
     # get user object from users dict
     if state not in users:
-        print('user with state={} not found in user dict.'.format(state))
         print('contents of users:\n{}'.format(users))
-        return("error: are cookies enabled? if not, try enabling them.")
+        return('user with state={} not found in user dict.'.format(state))
     user = users[state]
 
     # get authorization code (or error code) from uri
@@ -92,13 +92,13 @@ def selection():
         state = session["state"]
     else:
         print('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
+        return("error: are cookies enabled? if not, try enabling them.")
         # TODO: server error page/ redirect to index
 
     # get user object from users dict
     if state not in users:
-        print('user with state={} not found in user dict. redirecting to index'.format(state))
         print('contents of users:\n{}'.format(users))
-        return("error: are cookies enabled? if not, try enabling them.")
+        return('user with state={} not found in user dict.'.format(state))
     user = users[state]
 
     if request.args.get('choice'):

@@ -5,6 +5,8 @@ import clplaylistflow as pf
 from user import User
 
 app = Flask(__name__)
+r = redis.from_url(os.environ.get("REDIS_URL"))
+
 
 # need dict mapping user (by cookie) to data (playlists, track info)
 # state = None # associate this state with some user, in dict?
@@ -17,7 +19,6 @@ app = Flask(__name__)
 # global users dict (later redis db): key is <state>, value is user object
 
 users = {}
-
 
 @app.route('/')
 def index():
@@ -144,7 +145,6 @@ setappkey()
 
 if __name__ == "__main__":
     app.debug = True
-    r = redis.from_url(os.environ.get("REDIS_URL"))
     app.run(threaded=True, host="0.0.0.0", port=5000)
 
     

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, request, session
 from urlparse import urlparse, parse_qs
 import os
+import redis
 import clplaylistflow as pf
 from user import User
 

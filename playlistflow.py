@@ -27,7 +27,7 @@ def index():
 
 @app.route('/test')
 def test():
-    return(r.dbsize())
+    return(str(r.dbsize()))
 
 @app.route('/spotifylogin')
 def authenticate():

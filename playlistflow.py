@@ -23,6 +23,10 @@ users = {}
 def index():
     return(render_template('index.html'))
 
+@app.route('/test')
+def test():
+    return(r.dbsize())
+
 @app.route('/spotifylogin')
 def authenticate():
     user = User()
@@ -140,6 +144,7 @@ setappkey()
 
 if __name__ == "__main__":
     app.debug = True
+    r = redis.from_url(os.environ.get("REDIS_URL"))
     app.run(threaded=True, host="0.0.0.0", port=5000)
 
     

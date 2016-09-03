@@ -4,3 +4,5 @@ keys.txt
 __pycache__
 test.*
 *.pyc
+.DS_Store
+.env

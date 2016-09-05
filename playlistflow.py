@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, request, session
 from urlparse import urlparse, parse_qs
 import os
 import redis
+import pickle
 import clplaylistflow as pf
 from user import User
 
@@ -40,8 +41,9 @@ def authenticate():
     # add this user to sessions
     session["state"] = user.state
 
-    # add this user to dict
-    users[user.state] = user
+    # pickle and add to redis
+    userpickle = pickle.dumps(user)
+    r.setex(user.state, 3600, userpickle) # expire in an hour
 
     print('sent state {}'.format(user.state))
 
@@ -63,11 +65,13 @@ def callback():
         return("error: are cookies enabled? if not, try enabling them.")
         # TODO: server error page/ redirect to index
 
-    # get user object from users dict
-    if state not in users:
-        print('contents of users:\n{}'.format(users))
-        return('user with state={} not found in user dict.'.format(state))
-    user = users[state]
+    # get user object from redis
+    userpickle = r.get(state)
+    if not userpickle:
+        return('no user with state {} in DB'.format(state))
+    else:
+        user = pickle.loads(userpickle)
+        r.expire(state, 3600) # extend life of user in redis
 
     # get authorization code (or error code) from uri
     if 'code' in parseduri:
@@ -83,6 +87,10 @@ def callback():
 
     # build dict of user's playlists
     user.playlists = pf.getplaylists(user.accesstoken, user.userid)
+
+    # write updated user object back to redis
+    userpickle = pickle.dumps(user)
+    r.setex(user.state, 3600, userpickle)
 
     playlistnames = [x for x in user.playlists]
 
@@ -101,11 +109,13 @@ def selection():
         return("error: are cookies enabled? if not, try enabling them.")
         # TODO: server error page/ redirect to index
 
-    # get user object from users dict
-    if state not in users:
-        print('contents of users:\n{}'.format(users))
-        return('user with state={} not found in user dict.'.format(state))
-    user = users[state]
+    # get user object from redis
+    userpickle = r.get(state)
+    if not userpickle:
+        return('no user with state {} in DB'.format(state))
+    else:
+        user = pickle.loads(userpickle)
+        r.expire(state, 3600) # extend life of user in redis
 
     if request.args.get('choice'):
         chosenplaylist = user.playlists[request.args.get('choice')]

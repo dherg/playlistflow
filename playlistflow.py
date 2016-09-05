@@ -43,7 +43,7 @@ def authenticate():
 
     # pickle and add to redis
     userpickle = pickle.dumps(user)
-    r.setex(user.state, 3600, userpickle) # expire in an hour
+    r.setex(user.state, userpickle, 3600) # expire in an hour
 
     print('sent state {}'.format(user.state))
 
@@ -90,7 +90,7 @@ def callback():
 
     # write updated user object back to redis
     userpickle = pickle.dumps(user)
-    r.setex(user.state, 3600, userpickle)
+    r.setex(user.state, userpickle, 3600)
 
     playlistnames = [x for x in user.playlists]
 

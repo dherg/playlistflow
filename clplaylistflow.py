@@ -520,7 +520,7 @@ def gettrackinfo(accesstoken, playlist):
 
         # t.printattributes()
 
-def sortbyflow(playlist):
+def sortbyflow(playlist, flow="fastnn"):
     """
         Takes in a Playlist object with Tracks filled with attributes, applies
         flow algorithm to group songs (For now just sorts by the valence
@@ -530,8 +530,12 @@ def sortbyflow(playlist):
         there is an error.
     """
     try:
-        sortedlist = sort.fullnnflow(playlist)
-        # sortedlist = sort.nnflow(playlist)
+        if flow == "simple":
+            sortedlist = sort.simpleflow(playlist)
+        elif flow == "fullnn":
+            sortedlist = sort.fullnnflow(playlist)
+        else:
+            sortedlist = sort.fastnnflow(playlist)
         sorteduris = ["spotify:track:{}".format(track.trackid) for track in sortedlist]
     except Exception as e:
         print("error: sorting in sortbyflow failed")

@@ -123,7 +123,7 @@ def selection():
     pf.gettrackinfo(user.accesstoken, playlist)
 
     # run flow algorithm to determine correct order
-    newtracklist = pf.sortbyflow(playlist)
+    newtracklist = pf.sortbyflow(playlist=playlist, flow="fastnn")
     if not newtracklist:
         return('error; newtracklist is None')
 

@@ -7,7 +7,7 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
+    <link rel="icon" href={{ url_for('static', filename='favicon.ico')}}>
 
     <title>Playlist Flow</title>
 
@@ -33,8 +33,8 @@
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills pull-right">
-            <li role="presentation" class="active"><a href="/">Home</a></li>
-            <li role="presentation"><a href="/about">About</a></li>
+            <li role="presentation"><a href="/" style="color: black">Home</a></li>
+            <li role="presentation"><a href="/about" style="color: black">About</a></li>
               <!-- <li role="presentation"><a href="#">Contact</a></li> -->
           </ul>
         </nav>

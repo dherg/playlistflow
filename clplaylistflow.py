@@ -424,6 +424,7 @@ def getplaylisttracks(accesstoken, chosenplaylist):
                 return(None)
 
         for track in response["items"]:
+            print('\n{}\n'.format(track))
             if not track["track"]["id"]:
                 # possibly a locally saved song. skip over it, as no way to query audio features without
                 # knowing track id

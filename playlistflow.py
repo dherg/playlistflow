@@ -3,35 +3,24 @@ from urlparse import urlparse, parse_qs
 import os
 import redis
 import pickle
+import logging
 import clplaylistflow as pf
 from user import User
 
 app = Flask(__name__)
 r = redis.from_url(os.environ.get("REDIS_URL"))
 
-
-# need dict mapping user (by cookie) to data (playlists, track info)
-# state = None # associate this state with some user, in dict?
-# playlists = None # also in dict
-# accesstoken = None
-# refreshtoken = None
-# userid = None
-
-# session: has cookie for state. e.g. session["state"] = <state>
-# global users dict (later redis db): key is <state>, value is user object
-
-users = {}
+logging.basicConfig(filename="app.log", level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @app.route('/')
 def index():
+    logger.debug('route: /')
     return(render_template('index.html'))
-
-@app.route('/test')
-def test():
-    return(str(r.dbsize()))
 
 @app.route('/spotifylogin')
 def authenticate():
+    logger.debug('route: /spotifylogin')
     user = User()
     user.state, url = pf.getauthenticationurl()
 
@@ -45,12 +34,13 @@ def authenticate():
     userpickle = pickle.dumps(user)
     r.setex(user.state, userpickle, 3600) # expire in an hour
 
-    print('sent state {}'.format(user.state))
+    logger.debug('sent state {}'.format(user.state))
 
     return(redirect(url))
 
 @app.route('/callback')
 def callback():
+    logger.debug('route: /callback')
     url = request.url
     parseduri = parse_qs(urlparse(url).query)
 
@@ -59,9 +49,8 @@ def callback():
         state = session["state"]
         if state != parseduri['state'][0]:
             return('error: sent state ({}) not equal to return state ({})'.format(state, parseduri['state'][0]))
-        #print('\n\n{} in session\n\n'.format(parseduri['state'][0]))
     else:
-        print('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
+        logger.debug('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
         return("error: are cookies enabled? if not, try enabling them.")
         # TODO: server error page/ redirect to index
 
@@ -100,12 +89,13 @@ def callback():
 
 @app.route('/selection')
 def selection():
+    logger.debug('route: /selection')
 
     # check cookie for state
     if "state" in session:
         state = session["state"]
     else:
-        print('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
+        logger.debug('\n\n{} NOT in session\n\n'.format(parseduri['state'][0]))
         return("error: are cookies enabled? if not, try enabling them.")
         # TODO: server error page/ redirect to index
 
@@ -146,6 +136,7 @@ def selection():
 
 @app.route('/about')
 def about():
+    logger.debug('route: /about')
     return(render_template("about.html"))
 
 def setappkey():

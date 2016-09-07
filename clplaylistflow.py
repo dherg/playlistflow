@@ -530,7 +530,7 @@ def sortbyflow(playlist):
         there is an error.
     """
     try:
-        sortedlist = sort.nnflow(playlist)
+        sortedlist = sort.fullnnflow(playlist)
         # sortedlist = sort.nnflow(playlist)
         sorteduris = ["spotify:track:{}".format(track.trackid) for track in sortedlist]
     except Exception as e:

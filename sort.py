@@ -31,25 +31,32 @@ def fastnnflow(playlist, size=50, attribute="valence"):
         Returns a list of Tracks in sorted order, or None if there is an error.
     """
 
-def nnflow(playlist):
-    """
-        Flow using nearest neighbor algorithm. Idea is that differences in
-        attribute values between songs are used to compute a 'distance' between
-        each song. Creating a playlist with that minimizes the maximum distance
-        between any two songs is equivalent to the bottlenect traveling salesman
-        problem (without returning to the original song). One computationally 
-        feasible heuristic for this problem is the nearest neighbor algorithm: 
-        arbitrarily choose a starting node, compute the distance from it to all 
-        unvisited nodes, then move the closest node and continue. O(n^2)
+    # start with simply sorted list from simpleflow
+    simplelist = simpleflow(playlist, attribute)
+    if not simplelist:
+        print('Error simply sorting list in fastnnflow')
+        return(None)
 
-        Accepts a playlist object containing all of the tracks.
-
-        Returns a list of Tracks in sorted order, or None if there is an error
-        during the sorting.
-    """
-    unsortedlist = playlist.tracks
+    # sort by nearest neighbor 'size' tracks at a time
     sortedlist = []
 
+    while simplelist:
+        sortedlist = sortedlist + nnflow(simplelist[:size])
+        simplelist = simplelist[size:]
+
+    return(sortedlist)
+
+def nnflow(unsortedlist):
+    """
+        Helper function for fastnnflow and fullnnflow to do the nearest neighbor
+        sort on lists of tracks of arbitrary length. Takes an unsorted list of
+        tracks and return a list of those tracks in order sorted by the nearest
+        neighbor path.
+
+        Returns a list of tracks or None if there is an error.
+    """
+
+    sortedlist = []
     # normalize and get total values for each track. keep track of lowest total
     # so as to start playlist with that track (hopefully will avoid large jump
     # in middle of playlist that way.. if start at random track in middle,
@@ -88,6 +95,27 @@ def nnflow(playlist):
 
     return(sortedlist)
 
+
+def fullnnflow(playlist):
+    """
+        Flow using nearest neighbor algorithm. Idea is that differences in
+        attribute values between songs are used to compute a 'distance' between
+        each song. Creating a playlist with that minimizes the maximum distance
+        between any two songs is equivalent to the bottlenect traveling salesman
+        problem (without returning to the original song). One computationally 
+        feasible heuristic for this problem is the nearest neighbor algorithm: 
+        arbitrarily choose a starting node, compute the distance from it to all 
+        unvisited nodes, then move the closest node and continue. O(n^2)
+
+        Accepts a playlist object containing all of the tracks.
+
+        Returns a list of Tracks in sorted order, or None if there is an error
+        during the sorting.
+    """
+    unsortedlist = playlist.tracks
+    return(nnflow(unsortedlist))
+
+
 def getdistance(vector1, vector2):
     """
         Accepts two vectors (track.normalizedlist arrays, containing weighted 
@@ -103,5 +131,3 @@ def getdistance(vector1, vector2):
     except Exception as e:
         print('error in getdistance:\n{}'.format(e))
         return(None)
-
-

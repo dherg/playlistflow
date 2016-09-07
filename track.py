@@ -44,7 +44,7 @@ class Track():
                    1, # instrumentalness
                    1, # liveness
                    0.1, # loudness
-                   3, # valence
+                   5, # valence
                    1, # tempo
                     ]
 

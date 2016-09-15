@@ -428,7 +428,6 @@ def getplaylisttracks(accesstoken, chosenplaylist):
                 # a locally saved song. skip over it, as no way to query audio 
                 # features without having a spotify track id
                 continue
-            if track["track"]["id"]
             t = Track()
             t.trackid = track["track"]["id"]
             t.albumname = track["track"]["album"]["name"]
@@ -442,7 +441,7 @@ def getplaylisttracks(accesstoken, chosenplaylist):
 
     # filter out tracks with trackid == None
     chosenplaylist.tracks = [track for track in chosenplaylist.tracks if track.trackid is not None]
-    
+
     # print(chosenplaylist.tracks)
     return(chosenplaylist)
 

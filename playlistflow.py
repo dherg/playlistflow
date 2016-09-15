@@ -119,6 +119,8 @@ def selection():
     if not playlist.tracks:
         return("Looks like the playlist you chose doesn't have any songs in it. Try a different one!")
 
+    logger.debug("tracks:\n{}".format(playlist.tracks))
+
     # get info for each of that playlist's tracks
     pf.gettrackinfo(user.accesstoken, playlist)
 

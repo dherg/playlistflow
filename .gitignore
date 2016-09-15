@@ -1,8 +1,15 @@
-notes.txt
+# keys
 keys.txt
-*.log
-__pycache__
-test.*
-*.pyc
-.DS_Store
 .env
+
+# python
+__pycache__
+*.pyc
+
+# dev
+notes.txt
+*.log
+test.*
+
+# other
+.DS_Store

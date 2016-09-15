@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import requests
 import json
@@ -13,7 +12,6 @@ from collections import OrderedDict
 from playlist import Playlist
 from track import Track
 import sort
-from timing import timeit
 
 def readappkeys():
     """
@@ -27,55 +25,6 @@ def readappkeys():
 
     return(appid, appsecret, redirecturi)
 
-
-def authenticateuser():
-    """ 
-        Send authorization request, get authorization code in uri, use
-        code from uri to request access and refresh tokens.
-        
-        Returns a code or None if some error prevented authentication.
-    """
-    # read application keys from env variables
-    appid, appsecret, redirecturi = readappkeys()
-
-    # generate random state string for request (for security)
-    state = ''.join(random.choice(string.ascii_lowercase + string.digits 
-                + string.ascii_uppercase) for i in range(20))
-
-    # need access to public and private playlists
-    scope = ("playlist-read-private playlist-read-collaborative" 
-            + " playlist-modify-public playlist-modify-private")
-
-    # load request parameters
-    payload = {}
-    payload["client_id"] = appid
-    payload["response_type"] = "code"
-    payload["redirect_uri"] = redirecturi
-    payload["state"] = state
-    payload["scope"] = scope
-
-
-    # generate authorization request
-    r = requests.get("https://accounts.spotify.com/authorize/",
-                    params=payload)
-    print('url = \n\n {} \n\n'.format(r.url))
-
-    # parse uri response
-    uri = input("callback uri? ")
-    parseduri = parse_qs(urlparse(uri).query)
-
-    # check that state returned is state sent for this request
-    if state != parseduri['state'][0]:
-        print("error: sent state doesn't match uri returned state!")
-        # TODO: serve up some error page
-
-    # get authorization code (or error code) from uri
-    if 'code' in parseduri:
-        code = parseduri['code'][0]
-        return(code)
-    else:
-        error = parseduri['error'][0]
-        return(None)
 
 def getauthenticationurl():
     """ 
@@ -167,34 +116,6 @@ def requesttokens(code):
     # print('\ntokens:\n\n{}'.format(r.json()))
 
     return(accesstoken, refreshtoken)
-
-def getrequesttokensurl(code):
-    """
-        Given an authorization code, format and return a POST url to
-        /api/token endpoint for access and refresh tokens.
-
-        Returns a URL to request tokens, or None if unsuccessful
-    """
-
-    appid, appsecret, redirecturi = readappkeys()
-
-    payload = {}
-    payload["grant_type"] = "authorization_code"
-    payload["code"] = code
-    payload["redirect_uri"] = redirecturi
-    payload["client_id"] = appid
-    payload["client_secret"] = appsecret
-
-    # create URL
-    r = requests.Request("POST",
-                "https://accounts.spotify.com/api/token",
-                data=payload)
-    prepped = r.prepare()
-
-    if prepped.url:
-        return(prepped.url)
-    else:
-        return(None)
 
 def getuserid(accesstoken):
     """ 
@@ -322,27 +243,6 @@ def getplaylists(accesstoken, userid):
         numberreceived = numberreceived + len(response["items"])
 
     return(playlists)
-
-def getplaylistchoice(playlists):
-    """
-        Present user with list of their playlists, and get their choice for
-        which playlist they want to be "flowed"
-
-        Returns a single Playlist object representing the chosen playlist, or
-        None if there is an error.
-    """
-
-    # for testing
-    return(playlists["xmu"])
-
-    for i, name in enumerate(playlists):
-        print("[{}] {}".format(i, name))
-
-    # assuming input is a playlist, TODO will be a multiple choice
-    # checkboxes?
-    chosenplaylistname = input("Type the name of the playlist you want to be flowed: ")
-
-    return(playlists[chosenplaylistname])
 
 def getplaylisttracks(accesstoken, chosenplaylist):
     """
@@ -700,37 +600,3 @@ def createspotifyplaylist(accesstoken, name, playlists, tracklist, userid):
 
     return(playlistname, playlisturl)
     
-
-def main():
-
-    # get code
-    code = authenticateuser()
-
-    # use code to request access and refresh tokens
-    accesstoken, refreshtoken = requesttokens(code)
-
-    # get current user id
-    userid = getuserid(accesstoken)
-
-    # build dict of playlist objects for user's playlists
-    playlists = getplaylists(accesstoken, userid)
-
-    # find out which playlist user wants flowed
-    chosenplaylist = getplaylistchoice(playlists)
-
-    # get list of that playlist's tracks
-    playlist = getplaylisttracks(accesstoken, chosenplaylist)
-
-    # get info for each of that playlist's tracks
-    gettrackinfo(accesstoken, playlist)
-
-    # run flow algorithm to determine correct order
-    newtracklist = sortbyflow(playlist)
-
-    # create new playlist with that track order
-    createspotifyplaylist(accesstoken, playlist.name, playlists,
-                         newtracklist, userid)
-
-
-if __name__ == "__main__":
-    main()

@@ -117,7 +117,7 @@ def selection():
 
     # double check to make sure playlist isn't empty
     if not playlist.tracks:
-        return("Looks like the playlist you chose doesn't have any songs in it. Try a different one!")
+        return("Looks like the playlist you chose doesn't have any songs in it (or only has non-spotify songs in it). Try a different one!")
 
     logger.debug("tracks:\n{}".format(playlist.tracks))
 

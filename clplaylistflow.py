@@ -424,11 +424,11 @@ def getplaylisttracks(accesstoken, chosenplaylist):
                 return(None)
 
         for track in response["items"]:
-            print('track: \n{}\n'.format(track))
             if track["is_local"]:
                 # a locally saved song. skip over it, as no way to query audio 
                 # features without having a spotify track id
                 continue
+            if track["track"]["id"]
             t = Track()
             t.trackid = track["track"]["id"]
             t.albumname = track["track"]["album"]["name"]
@@ -436,9 +436,13 @@ def getplaylisttracks(accesstoken, chosenplaylist):
             t.artistname = track["track"]["artists"][0]["name"]
             # print(t.trackid, t.trackname, t.artistname, t.albumname)
             chosenplaylist.tracks.append(t)
+
                
         numberreceived = numberreceived + len(response["items"])
 
+    # filter out tracks with trackid == None
+    chosenplaylist.tracks = [track for track in chosenplaylist.tracks if track.trackid is not None]
+    
     # print(chosenplaylist.tracks)
     return(chosenplaylist)
 

@@ -1,6 +1,6 @@
 # Playlist Flow
 
-[Try it out!](http://playlistflow.herokuapp.com)
+[Try it out!](https://playlistflow.herokuapp.com)
 
 For people with eclectic Spotify playlists, Playlist Flow helps  easily reorder songs so that they sound better together.
 
